@@ -14,5 +14,6 @@
               "NOV",
               "DEC"],
   "port":  80,
-  "staticViews": ["./dist", "./dist/html"]
+  "staticViews": ["./dist", "./dist/html"],
+  "stockFields": ["open", "high", "low", "close"]
 }

@@ -1,83 +1,11 @@
 'use strict'
 
-let fs = require('fs')
-  , path = require('path')
-  , config = require('../settings/config')
-  , csv = require('fast-csv')
+let config = require('../settings/config')
   , Bluebird = require('bluebird')
   , winston = require('winston')
-  , Datastore = require('nedb')
   , log = winston.info.bind(winston)
-  , db = new Datastore(config.datastore)
-  , dates
  
 
-fs = Bluebird.promisifyAll(fs)
-db = Bluebird.promisifyAll(db)
-
-function getCsvFiles(){
-  return fs.readdirAsync(config.csvFolder)
-    .then(files => files.filter(file => file.indexOf('.csv')!=-1).map(file => path.join(config.csvFolder, file)))
-}
-
-function deleteCsv(file){
-  //if(file.indexOf(config.csvFolder)==-1) file = path.join(config.csvFolder, file)
-  return fs.unlinkAsync(file)
-}
-
-function readCsv(file){
-  let stream = fs.createReadStream(file)
-    , open, high, low, close
-  return new Promise((resolve, reject) => {
-    let csvStream = csv()
-      .on('data', data => {        
-        count++
-        if(!count)  {
-          open = data.indexOf('OPEN')
-          close = data.indexOf('CLOSE')
-          high = data.indexOf('HIGH')
-          low = data.indexOf('LOW')
-          return
-        }
-        if(count==1)  {
-          let date = data[10].split('-')
-          obj.date = data[10]          
-          // obj.month = date[1]
-          // obj.day = date[0]
-          // obj.year = date[2]
-        }
-        obj[`${data[0]}-${data[1]}`] = {
-          stock: true,
-          open: data[open],
-          high: data[high],
-          low: data[low],
-          close: data[close]
-        }
-      })
-      .on('end', () => resolve(obj))
-      , obj = {}
-      , count = -1
-    stream.pipe(csvStream)
-  })
-}
-
-function addCsv(file){
-  let data
-  return readCsv(file)
-    .then(_data => {
-      data = _data
-      return db.findOneAsync({_id: data._id})
-    }).then(record => {
-      if(record)  return db.remove({_id: record._id})
-    }).then(() => db.insertAsync(data))
-    .then(() => deleteCsv(file))
-}
-
-function loadCsvs(){
-  return getCsvFiles()
-    .then(files => Bluebird.mapSeries(files, addCsv))
-    .then(() => log('loaded all csv files...'))
-}
 
 function sortDates(arry){
   let months = config.months
@@ -90,29 +18,37 @@ function sortDates(arry){
   return arry.sort((a,b) => conv(a) - conv(b))
 }
 
+function slice(arry, length, key){
+  let idx = arry.indexOf(key)
+  if(idx == -1) throw new Error('key not found')
+  return arry.slice(idx-length, idx)
+}
 
-class Market{
-  constructor(){
-    this.db = db
-    this.ready = db
-      .loadDatabaseAsync()
-      .then(() => log('database is loaded...'))
-      .then(loadCsvs)
-      .then(() => db.findAsync({}, {date:1, _id:0}))
-      .then(data => {
-        data = data.map(datum => datum.date)
-        dates = sortDates(data)
-        this.dates = dates
-        return db.findOneAsync({})
-      })
-      .then(data => {
-        let keys = []
-        for(let key in data)
-          if(data[key].stock)
-            keys.push(key)
-        this.stocks = keys
-      })
+function getProjections({dates, db, field}){
+  let projections = {_id:0}, query = {}, result = [], fields, len
+  if(dates) query.date = {$in:dates}
+  if(field){
+    fields = field.split('.')
+    len = fields.length
+  }
+  return db.findAsync(query, projections).then(data => {
+    if(!field)  result = data
+    else result = data.map(getInnerDatum)
+    return result.filter(d => d)
+  })  
+  function getInnerDatum(datum){
+    for(let i=0;i<len&&datum;i++) datum = datum[fields[i]]
+    return isNaN(+datum) ? datum : +datum
   }
 }
 
-module.exports = new Market()
+function average(arry){
+  return arry.reduce((z,a) => z+a, 0)/arry.length
+}
+
+module.exports = {
+  sortDates
+  , slice
+  , getProjections
+  , average
+}

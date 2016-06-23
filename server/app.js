@@ -6,7 +6,7 @@ let app = require('./express')
   , open = require('open')
   , IO = require('socket.io')
   , config = require('../settings/config')
-  , Market = require('./utils')
+  , Market = require('./market')
   , socketHandler = require('./socket')
   , port = config.port
   , server

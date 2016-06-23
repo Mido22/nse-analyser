@@ -111,7 +111,6 @@ class Market{
           if(data[key].stock)
             keys.push(key)
         this.stocks = keys
-        log(this.stocks)
       })
   }
 }

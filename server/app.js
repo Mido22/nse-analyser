@@ -17,7 +17,7 @@ server.listen(port)
 server.on('error', e => winston.info('server error: ', e))
 server.on('listening', () => {
 	winston.info('server listenng to port: ', port)
-	Market.ready.then(() => open(`http://localhost:${port}`))
+	// Market.ready.then(() => open(`http://localhost:${port}`, 'firefox'))
 })
 
 let io = IO(server)

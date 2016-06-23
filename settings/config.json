@@ -1,6 +1,6 @@
 {
-  "csvFolder": "../data",
-  "datastore": "../data/data.db",
+  "csvFolder": "./data/",
+  "datastore": "./data/data.db",
   "months" : ["JAN",
               "FEB",
               "MAR",
@@ -13,5 +13,6 @@
               "OCT",
               "NOV",
               "DEC"],
-  "port":  3131
+  "port":  80,
+  "staticViews": ["./dist", "./dist/html"]
 }

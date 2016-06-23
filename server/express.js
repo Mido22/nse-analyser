@@ -2,6 +2,7 @@
 
 let express = require('express')
   , path = require('path')
+  , fs = require('fs')
   , favicon = require('serve-favicon')
   , logger = require('morgan')
   , cookieParser = require('cookie-parser')
@@ -15,11 +16,7 @@ app.use(logger('dev'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser())
-app.use(serveStatic('./dist'))  // load the static files from the dist foler 
-app.use('/', (req, res) => {
-  winston.info('requested home page...')
-  res.render('../dist/index.html')
-})  // load the static files from the dist foler 
+config.staticViews.forEach(location => app.use(serveStatic(location))) // load the static files from the dist foler 
 app.use((req, res, next) => {  // catch the missing url error
   let err = new Error('Not Found')
   err.status = 404

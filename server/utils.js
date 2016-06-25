@@ -44,8 +44,9 @@ function getRSI(arry){
   return RSI - 100/(1+ (average(posArry)/average(negArry)))
 }
 
-function writeJSON(obj, file){
+function writeJSON(file, obj){
   obj = JSON.stringify(obj, null, 4)
+  console.log(file, obj)
   return fs.writeFileAsync(file, obj)
 }
 

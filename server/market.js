@@ -47,6 +47,7 @@ function getProjections({dates, field}){
 }
 
 function getRSI({stock, days, date, stockField}){
+	log(stock)
 	stockField = config.stockFields[stockField]
 	let checkDates = Utils.slice(dates, days, date, true)
 	  , field = `${stock}.${stockField}`

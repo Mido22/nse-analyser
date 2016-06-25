@@ -1,12 +1,12 @@
 {
   "output": "./data/output.json",
   "rsi": {
-    "days": 14,
-    "min": 30,
-    "max": 70
+    "days": 5,
+    "min": 80,
+    "max": 90
   },
   "avg":{
-    "days": 31,
+    "days": 10,
     "min": -1000,
     "max": 0
   }

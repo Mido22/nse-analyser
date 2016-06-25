@@ -1,0 +1,13 @@
+{
+  "output": "./data/output.json",
+  "rsi": {
+    "days": 14,
+    "min": 30,
+    "max": 70
+  },
+  "avg":{
+    "days": 31,
+    "min": -1000,
+    "max": 0
+  }
+}

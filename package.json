@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "grunt dev"
+    "start": "grunt dev",
+    "terminal": "node server/terminal-app.js"
   },
   "devDependencies": {
     "babel": "^6.3.26",

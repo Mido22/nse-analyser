@@ -3,9 +3,10 @@
 let config = require('../settings/config')
   , Bluebird = require('bluebird')
   , winston = require('winston')
+  , fs = require('fs')
   , log = winston.info.bind(winston)
  
-
+fs = Bluebird.promisifyAll(fs)
 
 function sortDates(arry){
   let months = config.months
@@ -18,37 +19,40 @@ function sortDates(arry){
   return arry.sort((a,b) => conv(a) - conv(b))
 }
 
-function slice(arry, length, key){
+function slice(arry, length, key, includeKey){
   let idx = arry.indexOf(key)
   if(idx == -1) throw new Error('key not found')
+  if(includeKey) idx++
   return arry.slice(idx-length, idx)
-}
-
-function getProjections({dates, db, field}){
-  let projections = {_id:0}, query = {}, result = [], fields, len
-  if(dates) query.date = {$in:dates}
-  if(field){
-    fields = field.split('.')
-    len = fields.length
-  }
-  return db.findAsync(query, projections).then(data => {
-    if(!field)  result = data
-    else result = data.map(getInnerDatum)
-    return result.filter(d => d)
-  })  
-  function getInnerDatum(datum){
-    for(let i=0;i<len&&datum;i++) datum = datum[fields[i]]
-    return isNaN(+datum) ? datum : +datum
-  }
 }
 
 function average(arry){
   return arry.reduce((z,a) => z+a, 0)/arry.length
 }
 
+function getRSI(arry){
+  let posArry = []
+    , negArry = []
+    , RSI = 100 
+
+  arry.forEach((val, idx) => {
+    if(!idx)  return
+    val -= arry[idx-1]
+    val>0 ? posArry.push(val): negArry.push(-1*val)
+  })
+  if(!negArry.length) return RSI
+  return RSI - 100/(1+ (average(posArry)/average(negArry)))
+}
+
+function writeJSON(obj, file){
+  obj = JSON.stringify(obj, null, 4)
+  return fs.writeFileAsync(file, obj)
+}
+
 module.exports = {
   sortDates
   , slice
-  , getProjections
   , average
+  , getRSI
+  , writeJSON
 }
